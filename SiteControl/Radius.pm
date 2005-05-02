@@ -1,0 +1,99 @@
+package Apache::SiteControl::Radius;
+
+use 5.008;
+use strict;
+use warnings;
+use Carp;
+use Authen::Radius;
+
+sub check_credentials
+{
+   my $r    = shift;  # Apache request object
+   my $username = shift;
+   my $password = shift;
+   my $host = $r->dir_config("RadiusAccessControllerHost") || "localhost";
+   my $secret = $r->dir_config("RadiusAccessControllerSecret") || "unknown";
+   my $radius;
+
+   # Get my IP address to pass as the
+   # Source IP and NAS IP Address
+   my $c = $r->connection;
+   # This does not seem to work correctly
+   #my $sockaddr = $c->local_addr if defined($c);
+   my $nas_ip_address = undef; # $sockaddr->ip_get if defined($sockaddr);
+
+   $r->log_error("WARNING: Shared secret is not set. Use RadiusAccessControllerSecret in httpd.conf") if $secret eq "unknown";
+
+   $radius = new Authen::Radius(Host => $host, Secret => $secret);
+   if(!$radius) {
+      $r->log_error("Could not contact radius server!");
+      return 0;
+   }
+   if($radius->check_pwd($username, $password, $nas_ip_address)) {
+      return 1;
+   }
+   $r->log_error("User $username failed authentication:" . $radius->strerror);
+   return 0;
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+Apache::SiteControl::Radius - Raduis authentication module for SiteControl
+
+=head1 SYNOPSIS
+
+In Apache/mod_perl's configuration:
+
+=over 4
+
+   PerlModule Apache::SiteControl::AccessController
+
+   <Location /sample>
+   ...
+      PerlSetVar SiteControlMethod Apache::SiteControl::Radius
+   ...
+   </Location>
+
+   <FilesMatch "\.pl$">
+    ...
+    PerlSetVar RadiusAccessControlHost "localhost"
+    PerlSetVar RadiusAccessControllerSecret "mysecret"
+    ...
+   </FilesMatch>
+
+   <Location /SampleLogin>
+    ...
+      PerlSetVar RadiusAccessControlHost "localhost"
+      PerlSetVar RadiusAccessControllerSecret "mysecret"
+    ...
+   </Location>
+
+=back
+
+=head1 DESCRIPTION
+
+Apache::SiteControl::Radius uses Authen::Radius to do the actual authentication of
+login attempts for the SiteControl system. See the AccessController
+documentation for a complete apache configuration example. The synopsis above
+shows the configuration parameters for the radius module only, which is not a
+stand-alone thing.
+
+The proper variables for the apache configuration of this modules are shown in
+the synopsis above. You must set the radius host and shared secret in all
+sections that will use the SiteControl system for authentication.
+
+=head1 SEE ALSO
+
+Apache::SiteControl::AccessController
+
+=head1 AUTHOR
+
+This module was written by Tony Kay, E<lt>tkay@uoregon.eduE<gt>.
+
+=head1 COPYRIGHT AND LICENSE
+
+=cut
