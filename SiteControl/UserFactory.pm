@@ -59,7 +59,9 @@ sub makeUser
       if(@other_cred && $saveOther) {
          my $i = 2;
          for my $c (@other_cred) {
-            $session{credential_$i} = $c;
+            $r->log_error("Saving extra credential_$i with value $c") if $debug;
+            $session{"attr_credential_$i"} = $c;
+            $i++;
          }
       }
       $r->log_error("Created user: " . Dumper($user)) if $debug;

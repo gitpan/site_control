@@ -1,3 +1,6 @@
+May 5, 2005: Version 0.42
+   - Fixed bug in saving extra user credentials to session
+
 May 1, 2005: Version 0.42
    - Changed name to Apache::SiteControl
    - Removed radius bugfix from 0.41...needs more debugging

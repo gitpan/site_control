@@ -5,6 +5,9 @@ use strict;
 use warnings;
 use Carp;
 use Authen::Radius;
+#use Apache::Connection;
+#use Apache::RequestRec;
+#use APR::SockAddr;
 
 sub check_credentials
 {
@@ -17,8 +20,8 @@ sub check_credentials
 
    # Get my IP address to pass as the
    # Source IP and NAS IP Address
-   my $c = $r->connection;
-   # This does not seem to work correctly
+   # TODO: Only works with apache 2...uncommented for now
+   #my $c = $r->connection;
    #my $sockaddr = $c->local_addr if defined($c);
    my $nas_ip_address = undef; # $sockaddr->ip_get if defined($sockaddr);
 
